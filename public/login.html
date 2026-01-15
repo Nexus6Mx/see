@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SEE Sistema de Evidencias</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>🔒 SEE</h1>
+                <p>Sistema de Evidencia ERR</p>
+            </div>
+
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="email">📧 Email</label>
+                    <input type="email" id="email" name="email" placeholder="tu@email.com" required
+                        autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">🔑 Contraseña</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required
+                        autocomplete="current-password">
+                </div>
+
+                <div id="error-message" class="error-message hidden"></div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+                    <span class="btn-text">Iniciar Sesión</span>
+                    <span class="btn-loader hidden">⏳ Validando...</span>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>ERR Automotriz © 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/login.js"></script>
+</body>
+
+</html>

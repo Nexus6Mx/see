@@ -1,0 +1,43 @@
+# Archivos sensibles y generados
+.env
+.env.production
+.env.local
+*.log
+
+# Dependencias
+/vendor/
+composer.lock
+
+# Archivos temporales
+/temp/*
+/logs/*
+!temp/.gitkeep
+!logs/.gitkeep
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+
+# Node modules (si se usa en futuro)
+node_modules/
+package-lock.json
+
+# Archivos de prueba
+test.php
+reset_admin.php
+debug.php

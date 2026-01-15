@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEE - Sistema de Evidencias</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+    <script>
+        // Redirect to appropriate page based on authentication
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            window.location.href = 'dashboard.html';
+        } else {
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <div style="text-align: center; padding: 50px;">
+        <p>Redirigiendo...</p>
+    </div>
+</body>
+
+</html>

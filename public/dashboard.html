@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SEE Sistema de Evidencias</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body class="dashboard-page">
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>📸 SEE Dashboard</h1>
+            </div>
+            <div class="nav-actions">
+                <span class="user-info" id="user-info"></span>
+                <button class="btn btn-secondary btn-sm" id="logout-btn">🚪 Salir</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📸</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="total-evidencias">-</div>
+                    <div class="stat-label">Total Evidencias</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="ordenes-activas">-</div>
+                    <div class="stat-label">Órdenes Activas</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📤</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="notificaciones-pendientes">-</div>
+                    <div class="stat-label">Notif. Pendientes</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="evidencias-hoy">-</div>
+                    <div class="stat-label">Hoy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-panel">
+            <input type="text" id="search-orden" class="filter-input" placeholder="🔍 Buscar por número de orden...">
+
+            <select id="filter-tipo" class="filter-select">
+                <option value="">Todos los tipos</option>
+                <option value="imagen">📷 Solo Imágenes</option>
+                <option value="video">🎥 Solo Videos</option>
+            </select>
+
+            <input type="date" id="filter-fecha-inicio" class="filter-input">
+            <input type="date" id="filter-fecha-fin" class="filter-input">
+
+            <button class="btn btn-secondary" id="clear-filters-btn">🔄 Limpiar</button>
+        </div>
+
+        <!-- Evidence Grid -->
+        <div class="section-header">
+            <h2>Evidencias Recientes</h2>
+            <div class="section-actions">
+                <span id="results-count" class="results-count"></span>
+            </div>
+        </div>
+
+        <div id="evidencias-grid" class="evidencias-grid">
+            <!-- Loading state -->
+            <div class="loading-state" id="loading-state">
+                <div class="spinner"></div>
+                <p>Cargando evidencias...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <button class="btn btn-secondary" id="prev-page" disabled>← Anterior</button>
+            <span class="page-info" id="page-info">Página 1</span>
+            <button class="btn btn-secondary" id="next-page">Siguiente →</button>
+        </div>
+    </div>
+
+    <!-- Modal para vista completa -->
+    <div id="view-modal" class="modal hidden">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">×</button>
+            <div id="modal-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Modal para acciones -->
+    <div id="actions-modal" class="modal hidden">
+        <div class="modal-overlay" id="actions-modal-overlay"></div>
+        <div class="modal-content modal-small">
+            <button class="modal-close" id="actions-modal-close">×</button>
+            <div class="modal-body">
+                <h3 id="actions-modal-title">Acciones</h3>
+                <div id="actions-modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/dashboard.js"></script>
+</body>
+
+</html>
