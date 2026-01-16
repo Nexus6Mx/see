@@ -157,6 +157,20 @@
 
             const response = await api(`/api/evidencias/read.php?${params}`);
 
+            // === DEBUGGING TEMPORAL ===
+            console.log('=== API RESPONSE DEBUG ===');
+            console.log('Response:', response);
+            console.log('Success:', response?.success);
+            console.log('Grouped:', response?.grouped);
+            console.log('Data type:', typeof response?.data);
+            console.log('Data:', response?.data);
+            if (response?.data && response.data.length > 0) {
+                console.log('First item:', response.data[0]);
+                console.log('Has evidencias?:', response.data[0]?.evidencias);
+            }
+            console.log('=========================');
+            // === FIN DEBUG ===
+
             if (response && response.success) {
                 if (response.grouped) {
                     state.groupedData = response.data;
