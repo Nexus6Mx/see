@@ -30,8 +30,9 @@ try {
     $fechaInicio = $_GET['fecha_inicio'] ?? null;
     $fechaFin = $_GET['fecha_fin'] ?? null;
     $tipo = $_GET['tipo'] ?? null;
+    $groupBy = $_GET['group_by'] ?? 'orden'; // 'orden' or 'none'
     $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-    $limit = isset($_GET['limit']) ? min((int) $_GET['limit'], 100) : 20;
+    $limit = isset($_GET['limit']) ? min((int) $_GET['limit'], 100) : 100;
     $offset = ($page - 1) * $limit;
 
     // Build query
@@ -110,18 +111,37 @@ try {
         ];
     }
 
-    // Return response
-    http_response_code(200);
-    echo json_encode([
-        'success' => true,
-        'data' => $evidencias,
-        'pagination' => [
-            'total' => (int) $total,
-            'page' => $page,
-            'limit' => $limit,
-            'pages' => ceil($total / $limit)
-        ]
-    ]);
+    // Group by orden if requested
+    if ($groupBy === 'orden') {
+        $groupedData = groupEvidenciasByOrden($evidencias);
+        
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'grouped' => true,
+            'data' => $groupedData,
+            'pagination' => [
+                'total' => (int) $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => ceil($total / $limit)
+            ]
+        ]);
+    } else {
+        // Return flat list
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'grouped' => false,
+            'data' => $evidencias,
+            'pagination' => [
+                'total' => (int) $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => ceil($total / $limit)
+            ]
+        ]);
+    }
 
 } catch (Exception $e) {
     error_log("[Evidencias Read API] Error: " . $e->getMessage());
@@ -131,6 +151,62 @@ try {
         'success' => false,
         'error' => 'Error interno del servidor'
     ]);
+}
+
+/**
+ * Group evidencias by orden number
+ */
+function groupEvidenciasByOrden($evidencias)
+{
+    $grouped = [];
+    
+    foreach ($evidencias as $evidencia) {
+        $ordenNum = $evidencia['orden_numero'];
+        
+        if (!isset($grouped[$ordenNum])) {
+            $grouped[$ordenNum] = [
+                'orden_numero' => $ordenNum,
+                'total_evidencias' => 0,
+                'total_imagenes' => 0,
+                'total_videos' => 0,
+                'total_size_bytes' => 0,
+                'primera_fecha' => $evidencia['fecha_creacion'],
+                'ultima_fecha' => $evidencia['fecha_creacion'],
+                'evidencias' => []
+            ];
+        }
+        
+        $grouped[$ordenNum]['total_evidencias']++;
+        $grouped[$ordenNum]['total_size_bytes'] += $evidencia['archivo_size_bytes'];
+        
+        if ($evidencia['archivo_tipo'] === 'imagen') {
+            $grouped[$ordenNum]['total_imagenes']++;
+        } else {
+            $grouped[$ordenNum]['total_videos']++;
+        }
+        
+        // Update date range
+        if ($evidencia['fecha_creacion'] < $grouped[$ordenNum]['primera_fecha']) {
+            $grouped[$ordenNum]['primera_fecha'] = $evidencia['fecha_creacion'];
+        }
+        if ($evidencia['fecha_creacion'] > $grouped[$ordenNum]['ultima_fecha']) {
+            $grouped[$ordenNum]['ultima_fecha'] = $evidencia['fecha_creacion'];
+        }
+        
+        $grouped[$ordenNum]['evidencias'][] = $evidencia;
+    }
+    
+    // Sort by most recent
+    usort($grouped, function($a, $b) {
+        return strcmp($b['ultima_fecha'], $a['ultima_fecha']);
+    });
+    
+    // Format total size
+    foreach ($grouped as &$group) {
+        $group['total_size_formatted'] = formatBytes($group['total_size_bytes']);
+    }
+    
+    return array_values($grouped);
 }
 
 function formatBytes($bytes, $precision = 2)

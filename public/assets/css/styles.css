@@ -570,3 +570,272 @@ body {
         gap: 10px;
     }
 }
+
+/* ============================================================================
+   View Controls
+   ============================================================================ */
+
+.view-controls {
+    display: flex;
+    gap: 5px;
+    background: var(--gray-100);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    margin-right: 15px;
+}
+
+.view-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--gray-600);
+}
+
+.view-btn:hover {
+    background: var(--gray-200);
+    color: var(--gray-800);
+}
+
+.view-btn.active {
+    background: white;
+    color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-actions {
+    display: flex;
+    align-items: center;
+}
+
+/* ============================================================================
+   Grouped Evidence View
+   ============================================================================ */
+
+.evidence-group {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.group-header {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--gray-200);
+    transition: all 0.3s ease;
+}
+
+.group-header:hover {
+    background: var(--gray-100);
+}
+
+.group-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.group-orden {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.group-stats {
+    font-size: 13px;
+    color: var(--gray-600);
+}
+
+.group-toggle {
+    color: var(--gray-600);
+}
+
+.toggle-icon {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.evidence-group.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.group-content {
+    padding: 20px;
+}
+
+.group-content .evidencias-grid {
+    margin-bottom: 0;
+}
+
+/* ============================================================================
+   Evidence Card Enhancements
+   ============================================================================ */
+
+.evidence-thumbnail-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+}
+
+.video-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    backdrop-filter: blur(4px);
+}
+
+/* ============================================================================
+   List and Details Table Views
+   ============================================================================ */
+
+.evidence-table {
+    width: 100%;
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.evidence-table thead {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.evidence-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.evidence-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 14px;
+}
+
+.evidence-table tr:last-child td {
+    border-bottom: none;
+}
+
+.evidence-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.evidence-table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.file-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.file-link:hover {
+    text-decoration: underline;
+}
+
+/* Details table - wider for more columns */
+.evidence-table-details {
+    font-size: 13px;
+}
+
+.evidence-table-details td,
+.evidence-table-details th {
+    padding: 10px 12px;
+}
+
+/* ============================================================================
+   Mobile Responsive for New Features
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .view-controls {
+        width: 100%;
+        justify-content: space-between;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .section-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .group-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .evidence-table {
+        font-size: 12px;
+    }
+
+    .evidence-table th,
+    .evidence-table td {
+        padding: 8px 10px;
+    }
+
+    /* Stack table horizontally on very small screens */
+    @media (max-width: 480px) {
+        .evidence-table thead {
+            display: none;
+        }
+
+        .evidence-table tr {
+            display: block;
+            margin-bottom: 15px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+        }
+
+        .evidence-table td {
+            display: block;
+            text-align: right;
+            padding: 10px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .evidence-table td:before {
+            content: attr(data-label);
+            float: left;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+    }
+}

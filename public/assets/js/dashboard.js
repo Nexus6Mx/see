@@ -1,6 +1,6 @@
 /**
  * Dashboard JavaScript
- * Handles evidence listing, filtering, and actions
+ * Handles evidence listing, filtering, grouped views, and multiple view modes
  */
 
 (function () {
@@ -9,8 +9,10 @@
         token: localStorage.getItem('authToken'),
         user: JSON.parse(localStorage.getItem('userData') || '{}'),
         evidencias: [],
+        groupedData: [],
         currentPage: 1,
         totalPages: 1,
+        viewMode: localStorage.getItem('viewMode') || 'grid', // 'grid', 'list', 'details'
         filters: {
             orden: '',
             tipo: '',
@@ -37,6 +39,7 @@
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
+    const viewButtons = document.querySelectorAll('.view-btn');
 
     // Initialize
     init();
@@ -44,12 +47,40 @@
     async function init() {
         displayUserInfo();
         setupEventListeners();
+        setupViewControls();
         await loadStats();
         await loadEvidencias();
     }
 
     function displayUserInfo() {
         userInfo.textContent = `${state.user.email} (${state.user.rol})`;
+    }
+
+    function setupViewControls() {
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                changeView(view);
+            });
+
+            // Set active state
+            if (btn.dataset.view === state.viewMode) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    function changeView(viewMode) {
+        state.viewMode = viewMode;
+        localStorage.setItem('viewMode', viewMode);
+
+        // Update button states
+        viewButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === viewMode);
+        });
+
+        // Re-render with new view
+        renderEvidencias();
     }
 
     function setupEventListeners() {
@@ -115,7 +146,8 @@
         try {
             const params = new URLSearchParams({
                 page: state.currentPage,
-                limit: 20
+                limit: 100,
+                group_by: 'orden' // Always group by orden
             });
 
             if (state.filters.orden) params.append('orden', state.filters.orden);
@@ -126,12 +158,19 @@
             const response = await api(`/api/evidencias/read.php?${params}`);
 
             if (response && response.success) {
-                state.evidencias = response.data;
+                if (response.grouped) {
+                    state.groupedData = response.data;
+                    state.evidencias = flattenGroupedData(response.data);
+                } else {
+                    state.evidencias = response.data;
+                    state.groupedData = [];
+                }
+
                 state.totalPages = response.pagination.pages;
 
                 renderEvidencias();
                 updatePagination(response.pagination);
-                updateStats(response.pagination.total);
+                updateStats(response.pagination.total, response.data.length);
             } else {
                 showError('Error al cargar evidencias');
             }
@@ -141,7 +180,82 @@
         }
     }
 
+    function flattenGroupedData(groupedData) {
+        const flat = [];
+        groupedData.forEach(group => {
+            flat.push(...group.evidencias);
+        });
+        return flat;
+    }
+
     function renderEvidencias() {
+        if (state.viewMode === 'list') {
+            renderListView();
+        } else if (state.viewMode === 'details') {
+            renderDetailsView();
+        } else {
+            renderGridView();
+        }
+    }
+
+    function renderGridView() {
+        if (state.groupedData.length === 0) {
+            evidenciasGrid.innerHTML = `
+                <div class="loading-state">
+                    <p>No se encontraron evidencias</p>
+                </div>
+            `;
+            return;
+        }
+
+        evidenciasGrid.innerHTML = state.groupedData.map(group => `
+            <div class="evidence-group">
+                <div class="group-header" onclick="toggleGroup(this)">
+                    <div class="group-info">
+                        <span class="group-orden">#${group.orden_numero}</span>
+                        <span class="group-stats">
+                            ${group.total_imagenes} 📷 
+                            ${group.total_videos} 🎥 
+                            • ${group.total_size_formatted}
+                        </span>
+                    </div>
+                    <div class="group-toggle">
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                </div>
+                <div class="group-content" data-orden="${group.orden_numero}">
+                    <div class="evidencias-grid">
+                        ${group.evidencias.map(ev => `
+                            <div class="evidence-item" data-id="${ev.id}">
+                                <div class="evidence-thumbnail-wrapper" onclick="viewEvidence(${ev.id})">
+                                    <img src="${ev.thumbnail_url || ev.archivo_url}" 
+                                         alt="Evidencia" 
+                                         class="evidence-thumbnail"
+                                         loading="lazy">
+                                    ${ev.archivo_tipo === 'video' ? '<div class="video-badge">🎥</div>' : ''}
+                                </div>
+                                
+                                <div class="evidence-info">
+                                    <div class="evidence-filename" title="${ev.archivo_nombre_original}">
+                                        ${truncate(ev.archivo_nombre_original, 20)}
+                                    </div>
+                                    <div class="evidence-meta">
+                                        <span>📅 ${formatDate(ev.fecha_creacion)}</span>
+                                        <span>💾 ${ev.archivo_size_formatted}</span>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm btn-block" onclick="showActions(${ev.id}, '${ev.orden_numero}')">
+                                        ⚙️ Acciones
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderListView() {
         if (state.evidencias.length === 0) {
             evidenciasGrid.innerHTML = `
                 <div class="loading-state">
@@ -151,40 +265,115 @@
             return;
         }
 
-        evidenciasGrid.innerHTML = state.evidencias.map(ev => `
-            <div class="evidence-item" data-id="${ev.id}">
-                <img src="${ev.thumbnail_url || ev.archivo_url}" 
-                     alt="Evidencia" 
-                     class="evidence-thumbnail"
-                     loading="lazy"
-                     onclick="viewEvidence(${ev.id})">
-                
-                <div class="evidence-info">
-                    <div class="evidence-header">
-                        <span class="evidence-type-badge badge-${ev.archivo_tipo}">
-                            ${ev.archivo_tipo === 'video' ? '🎥 Video' : '📷 Imagen'}
-                        </span>
-                        <span class="evidence-orden">#${ev.orden_numero}</span>
-                    </div>
-
-                    <div class="evidence-filename" title="${ev.archivo_nombre_original}">
-                        ${ev.archivo_nombre_original}
-                    </div>
-
-                    <div class="evidence-meta">
-                        <span>📅 ${formatDate(ev.fecha_creacion)}</span>
-                        <span>💾 ${ev.archivo_size_formatted}</span>
-                    </div>
-
-                    <div class="evidence-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="showActions(${ev.id}, '${ev.orden_numero}')">
-                            ⚙️ Acciones
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        evidenciasGrid.innerHTML = `
+            <table class="evidence-table">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Orden</th>
+                        <th>Archivo</th>
+                        <th>Fecha</th>
+                        <th>Tamaño</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${state.evidencias.map(ev => `
+                        <tr data-id="${ev.id}">
+                            <td>
+                                <span class="type-badge badge-${ev.archivo_tipo}">
+                                    ${ev.archivo_tipo === 'video' ? '🎥' : '📷'}
+                                </span>
+                            </td>
+                            <td><strong>#${ev.orden_numero}</strong></td>
+                            <td>
+                                <a href="#" onclick="viewEvidence(${ev.id}); return false;" class="file-link">
+                                    ${truncate(ev.archivo_nombre_original, 30)}
+                                </a>
+                            </td>
+                            <td>${formatDate(ev.fecha_creacion)}</td>
+                            <td>${ev.archivo_size_formatted}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="showActions(${ev.id}, '${ev.orden_numero}')">
+                                    ⚙️
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
     }
+
+    function renderDetailsView() {
+        if (state.evidencias.length === 0) {
+            evidenciasGrid.innerHTML = `
+                <div class="loading-state">
+                    <p>No se encontraron evidencias</p>
+                </div>
+            `;
+            return;
+        }
+
+        evidenciasGrid.innerHTML = `
+            <table class="evidence-table evidence-table-details">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Orden</th>
+                        <th>Archivo</th>
+                        <th>Fecha</th>
+                        <th>Tamaño</th>
+                        <th>Subido por</th>
+                        <th>Usuario Telegram</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${state.evidencias.map(ev => `
+                        <tr data-id="${ev.id}">
+                            <td>
+                                <span class="type-badge badge-${ev.archivo_tipo}">
+                                    ${ev.archivo_tipo === 'video' ? '🎥 Video' : '📷 Imagen'}
+                                </span>
+                            </td>
+                            <td><strong>#${ev.orden_numero}</strong></td>
+                            <td>
+                                <a href="#" onclick="viewEvidence(${ev.id}); return false;" class="file-link">
+                                    ${ev.archivo_nombre_original}
+                                </a>
+                            </td>
+                            <td>${formatDate(ev.fecha_creacion)}</td>
+                            <td>${ev.archivo_size_formatted}</td>
+                            <td>${ev.subido_por_email || '-'}</td>
+                            <td>${ev.telegram_username || '-'}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="showActions(${ev.id}, '${ev.orden_numero}')">
+                                    ⚙️ Acciones
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    window.toggleGroup = function (header) {
+        const group = header.parentElement;
+        const content = group.querySelector('.group-content');
+        const icon = header.querySelector('.toggle-icon');
+
+        group.classList.toggle('collapsed');
+
+        if (group.classList.contains('collapsed')) {
+            content.style.display = 'none';
+            icon.textContent = '▶';
+        } else {
+            content.style.display = 'block';
+            icon.textContent = '▼';
+        }
+    };
 
     function updatePagination(pagination) {
         pageInfo.textContent = `Página ${pagination.page} de ${pagination.pages}`;
@@ -195,8 +384,9 @@
             `${pagination.total} evidencia${pagination.total !== 1 ? 's' : ''}`;
     }
 
-    function updateStats(total) {
-        document.getElementById('total-evidencias').textContent = total;
+    function updateStats(totalEvidencias, totalOrdenes) {
+        document.getElementById('total-evidencias').textContent = totalEvidencias;
+        document.getElementById('ordenes-activas').textContent = totalOrdenes;
         // TODO: Implement other stats
     }
 
@@ -332,6 +522,7 @@
         if (confirm('¿Cerrar sesión?')) {
             localStorage.removeItem('authToken');
             localStorage.removeItem('userData');
+            localStorage.removeItem('viewMode');
             window.location.href = 'login.html';
         }
     }
@@ -364,6 +555,11 @@
             hour: '2-digit',
             minute: '2-digit'
         });
+    }
+
+    function truncate(str, length) {
+        if (str.length <= length) return str;
+        return str.substring(0, length) + '...';
     }
 
     function debounce(func, wait) {
