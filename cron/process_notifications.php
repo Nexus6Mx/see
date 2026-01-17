@@ -5,7 +5,7 @@
  * Processes pending notifications from the queue
  * 
  * Schedule: Run every 5 minutes
- * Crontab: */5 * * * * /home/u185421649/domains/see.errautomotriz.online/public_html/cron/process_notifications.php
+ * Crontab: Every 5 minutes ~ /home/u185421649/domains/see.errautomotriz.online/public_html/cron/process_notifications.php
  */
 
 // Prevent web access
