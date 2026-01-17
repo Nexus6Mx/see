@@ -1,10 +1,11 @@
+#!/opt/alt/php83/usr/bin/php
 <?php
 /**
  * Notification Queue Processor - Cron Job
  * Processes pending notifications from the queue
  * 
  * Schedule: Run every 5 minutes
- * Crontab: (every 5 minutes) /usr/bin/php /path/to/see/cron/process_notifications.php
+ * Crontab: */5 * * * * /home/u185421649/domains/see.errautomotriz.online/public_html/cron/process_notifications.php
  */
 
 // Prevent web access
