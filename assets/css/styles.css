@@ -643,13 +643,18 @@ body {
 .group-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
+}
+
+.folder-icon {
+    font-size: 24px;
+    transition: all 0.3s ease;
 }
 
 .group-orden {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--gray-800);
 }
 
 .group-stats {

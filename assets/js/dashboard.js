@@ -223,24 +223,22 @@
         }
 
         evidenciasGrid.innerHTML = state.groupedData.map(group => `
-            <div class="evidence-group">
+            <div class="evidence-group collapsed">
                 <div class="group-header" onclick="toggleGroup(this)">
                     <div class="group-info">
-                        <span class="group-orden">#${group.orden_numero}</span>
+                        <span class="folder-icon">📁</span>
+                        <span class="group-orden">Orden #${group.orden_numero}</span>
                         <span class="group-stats">
-                            ${group.total_imagenes} 📷 
-                            ${group.total_videos} 🎥 
-                            • ${group.total_size_formatted}
+                            ${group.total_evidencias} archivo${group.total_evidencias !== 1 ? 's' : ''} (${group.total_imagenes} 📷 ${group.total_videos} 🎥)
                         </span>
                     </div>
                     <div class="group-actions">
                         <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); generateGallery('${group.orden_numero}')" title="Generar enlace de galería">
-                            🔗 Galería
+                            🔗 Compartir
                         </button>
-                        <span class="toggle-icon">▼</span>
                     </div>
                 </div>
-                <div class="group-content" data-orden="${group.orden_numero}">
+                <div class="group-content" data-orden="${group.orden_numero}" style="display: none;">
                     <div class="evidencias-grid">
                         ${group.evidencias.map(ev => `
                             <div class="evidence-item" data-id="${ev.id}">
@@ -376,16 +374,16 @@
     window.toggleGroup = function (header) {
         const group = header.parentElement;
         const content = group.querySelector('.group-content');
-        const icon = header.querySelector('.toggle-icon');
+        const folderIcon = header.querySelector('.folder-icon');
 
         group.classList.toggle('collapsed');
 
         if (group.classList.contains('collapsed')) {
             content.style.display = 'none';
-            icon.textContent = '▶';
+            if (folderIcon) folderIcon.textContent = '📁';
         } else {
             content.style.display = 'block';
-            icon.textContent = '▼';
+            if (folderIcon) folderIcon.textContent = '📂';
         }
     };
 
