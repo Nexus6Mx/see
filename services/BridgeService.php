@@ -27,6 +27,14 @@ class BridgeService
      */
     public function getClientByOrder($orderNumber, $skipCache = false)
     {
+        // TEMPORARY: Hardcoded test data while bridge API is being configured
+        // TODO: Remove this once bridge API is ready
+        $testData = $this->getTestClientData($orderNumber);
+        if ($testData !== null) {
+            error_log("[BridgeService] Using TEST data for order: {$orderNumber}");
+            return $testData;
+        }
+
         // Try cache first
         if ($this->cacheEnabled && !$skipCache) {
             $cached = $this->getFromCache($orderNumber);
@@ -45,6 +53,30 @@ class BridgeService
         }
 
         return $data;
+    }
+
+    /**
+     * TEMPORARY: Get test client data - Remove in production
+     * 
+     * @param string $orderNumber Order number
+     * @return array|null
+     */
+    private function getTestClientData($orderNumber)
+    {
+        // Only for order #12345 (test order)
+        if ($orderNumber === '12345') {
+            return [
+                'orden_numero' => '12345',
+                'cliente_nombre' => 'Carlos Barba',
+                'cliente_email' => 'cbarbap@gmail.com',
+                'cliente_telefono' => '5577190053',
+                'vehiculo_modelo' => 'Honda Civic EX 2020',
+                'vehiculo_placas' => 'ERR-TEST',
+                'fecha_orden' => date('Y-m-d H:i:s')
+            ];
+        }
+
+        return null;
     }
 
     /**
