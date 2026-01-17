@@ -233,7 +233,10 @@
                             • ${group.total_size_formatted}
                         </span>
                     </div>
-                    <div class="group-toggle">
+                    <div class="group-actions">
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); generateGallery('${group.orden_numero}')" title="Generar enlace de galería">
+                            🔗 Galería
+                        </button>
                         <span class="toggle-icon">▼</span>
                     </div>
                 </div>
@@ -257,9 +260,6 @@
                                         <span>📅 ${formatDate(ev.fecha_creacion)}</span>
                                         <span>💾 ${ev.archivo_size_formatted}</span>
                                     </div>
-                                    <button class="btn btn-secondary btn-sm btn-block" onclick="showActions(${ev.id}, '${ev.orden_numero}')">
-                                        ⚙️ Acciones
-                                    </button>
                                 </div>
                             </div>
                         `).join('')}

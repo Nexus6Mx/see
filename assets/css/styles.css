@@ -93,7 +93,7 @@ body {
     margin-bottom: 8px;
     font-weight: 500;
     color: var(--gray-700);
-    font-size:14px;
+    font-size: 14px;
 }
 
 .login-form input {
@@ -529,6 +529,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -654,6 +655,16 @@ body {
 .group-stats {
     font-size: 13px;
     color: var(--gray-600);
+}
+
+.group-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.group-actions .btn {
+    white-space: nowrap;
 }
 
 .group-toggle {
