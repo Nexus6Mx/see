@@ -239,6 +239,51 @@ try {
         queueNotification($db, $orderNumber);
     }
 
+    // ========== NOTIFICATION SYSTEM ==========
+    // Generate gallery link and queue email notification
+    try {
+        require_once __DIR__ . '/../services/NotificationService.php';
+        require_once __DIR__ . '/../services/BridgeService.php';
+
+        // Generate gallery token for this order
+        $galleryUrl = generateGalleryLink($db, $orderNumber);
+
+        // Get client data from bridge service
+        $bridgeService = new BridgeService($db);
+        $clientData = $bridgeService->getClientByOrder($orderNumber);
+
+        if ($clientData && !empty($clientData['email'])) {
+            // Initialize notification service
+            $notificationService = new NotificationService($db);
+
+            // Generate email content
+            $emailData = $notificationService->generateMessage('email', [
+                'cliente_nombre' => $clientData['nombre'],
+                'vehiculo_modelo' => $clientData['vehiculo_modelo'] ?? 'su vehículo',
+                'orden_numero' => $orderNumber,
+                'galeria_url' => $galleryUrl
+            ]);
+
+            // Queue email notification
+            $notificationService->queue(
+                $orderNumber,
+                'email',
+                $clientData['email'],
+                $emailData['body'],
+                $galleryUrl,
+                5 // Normal priority
+            );
+
+            error_log("[Telegram Webhook] Email notification queued for order {$orderNumber}");
+        } else {
+            error_log("[Telegram Webhook] No client email found for order {$orderNumber}");
+        }
+    } catch (Exception $notifError) {
+        // Don't fail the whole process if notification fails
+        error_log("[Telegram Webhook] Notification error: " . $notifError->getMessage());
+    }
+    // ========================================
+
     // Send confirmation to Telegram
     $fileTypeEmoji = $fileType === 'video' ? '🎥' : '📸';
     $confirmationMessage = "✅ {$fileTypeEmoji} Evidencia guardada\n\n" .
@@ -469,5 +514,69 @@ function formatBytes($bytes, $precision = 2)
     $bytes /= pow(1024, $pow);
 
     return round($bytes, $precision) . ' ' . $units[$pow];
+}
+
+/**
+ * Generate gallery link for an order
+ * Creates a secure token and returns the gallery URL
+ * 
+ * @param PDO $db Database connection
+ * @param string $ordenNumero Order number
+ * @return string Gallery URL
+ */
+function generateGalleryLink($db, $ordenNumero)
+{
+    // Generate cryptographically secure token
+    $token = bin2hex(random_bytes(32)); // 64 hex characters
+    $tokenHash = hash('sha256', $token);
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+30 days'));
+
+    try {
+        // Check if token already exists for this order
+        $checkQuery = "SELECT id FROM galeria_tokens WHERE orden_numero = :orden_numero AND expira_en > NOW() LIMIT 1";
+        $checkStmt = $db->prepare($checkQuery);
+        $checkStmt->bindParam(':orden_numero', $ordenNumero);
+        $checkStmt->execute();
+        $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            // Update existing token (refresh it)
+            $updateQuery = "
+                UPDATE galeria_tokens
+                SET token_hash = :token_hash,
+                    expira_en = :expira_en,
+                    created_at = NOW()
+                WHERE id = :id
+            ";
+            $updateStmt = $db->prepare($updateQuery);
+            $updateStmt->execute([
+                ':token_hash' => $tokenHash,
+                ':expira_en' => $expiresAt,
+                ':id' => $existing['id']
+            ]);
+        } else {
+            // Insert new token
+            $insertQuery = "
+                INSERT INTO galeria_tokens (token_hash, orden_numero, expira_en, creado_por_usuario_id)
+                VALUES (:token_hash, :orden_numero, :expira_en, 1)
+            ";
+            $insertStmt = $db->prepare($insertQuery);
+            $insertStmt->execute([
+                ':token_hash' => $tokenHash,
+                ':orden_numero' => $ordenNumero,
+                ':expira_en' => $expiresAt
+            ]);
+        }
+
+        // Generate URL
+        $appConfig = require __DIR__ . '/../api/config/app_config.php';
+        $baseUrl = rtrim($appConfig['base_url'], '/');
+        return "{$baseUrl}/galeria.php?t={$token}";
+
+    } catch (PDOException $e) {
+        error_log("[generateGalleryLink] Error: " . $e->getMessage());
+        // Return a placeholder URL if generation fails
+        return "https://see.errautomotriz.online/galeria.php?error=token_generation_failed";
+    }
 }
 ?>

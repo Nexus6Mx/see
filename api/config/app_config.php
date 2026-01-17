@@ -51,7 +51,7 @@ return [
 
         // WhatsApp (Evolution API)
         'whatsapp' => [
-            'enabled' => true,
+            'enabled' => false,  // Disabled until Evolution API is configured
             'api_url' => getenv('EVOLUTION_API_URL') ?: 'https://your-evolution-api.com',
             'api_key' => getenv('EVOLUTION_API_KEY') ?: 'YOUR_EVOLUTION_API_KEY',
             'instance_name' => getenv('EVOLUTION_INSTANCE') ?: 'err_instance'
