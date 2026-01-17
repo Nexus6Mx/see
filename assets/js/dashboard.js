@@ -463,19 +463,28 @@
 
             if (response && response.success) {
                 const url = response.data.url;
+                const diasExpiracion = response.data.expira_dias;
 
-                // Copy to clipboard
-                navigator.clipboard.writeText(url).then(() => {
-                    alert(`✅ Enlace generado y copiado:\n\n${url}\n\nVálido por ${response.data.expira_dias} días`);
-                });
-
-                closeModals();
+                // Try to copy to clipboard, but show alert regardless
+                navigator.clipboard.writeText(url)
+                    .then(() => {
+                        // Successfully copied
+                        alert(`✅ Enlace generado y copiado al portapapeles:\n\n${url}\n\nVálido por ${diasExpiracion} días\n\n📋 El enlace ya está en tu portapapeles, solo pégalo.`);
+                    })
+                    .catch((clipboardError) => {
+                        // Clipboard failed, but still show the link
+                        console.warn('Clipboard access denied:', clipboardError);
+                        alert(`✅ Enlace generado:\n\n${url}\n\nVálido por ${diasExpiracion} días\n\n⚠️ Copia manualmente el enlace de arriba.`);
+                    })
+                    .finally(() => {
+                        closeModals();
+                    });
             } else {
                 alert('Error al generar enlace: ' + (response.error || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Generate gallery error:', error);
-            alert('Error de conexión');
+            alert('Error de conexión al generar enlace');
         }
     };
 
