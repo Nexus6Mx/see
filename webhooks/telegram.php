@@ -63,14 +63,8 @@ try {
     // Extract caption or text
     $caption = $message['caption'] ?? $message['text'] ?? '';
 
-    // Log what we received
-    error_log("[Telegram] Caption/Text received: '{$caption}'");
-
     // Extract order number from caption/text
     $orderNumber = extractOrderNumber($caption);
-
-    // Log extracted order number
-    error_log("[Telegram] Extracted order number: " . ($orderNumber ?? 'NULL'));
 
     // Check if message contains supported files
     $file = null;
@@ -375,39 +369,14 @@ function sendTelegramMessage($chatId, $text, $botToken)
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
         $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
         curl_close($ch);
 
-        $response = json_decode($result, true);
-
-        // Log the attempt
-        error_log("[Telegram] Send message attempt - Chat ID: {$chatId}, HTTP: {$httpCode}");
-
-        if ($curlError) {
-            error_log("[Telegram] CURL Error: {$curlError}");
-            return null;
-        }
-
-        if ($httpCode !== 200) {
-            error_log("[Telegram] HTTP Error {$httpCode}: " . ($response['description'] ?? $result));
-            return null;
-        }
-
-        if ($response && !$response['ok']) {
-            error_log("[Telegram] API Error: " . ($response['description'] ?? 'Unknown error'));
-            return null;
-        }
-
-        error_log("[Telegram] ✅ Message sent successfully to chat {$chatId}");
-        return $response;
+        return json_decode($result, true);
 
     } catch (Exception $e) {
-        error_log("[Telegram] Send message exception: " . $e->getMessage());
+        error_log("[Telegram] Send message error: " . $e->getMessage());
         return null;
     }
 }
