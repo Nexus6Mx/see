@@ -63,8 +63,14 @@ try {
     // Extract caption or text
     $caption = $message['caption'] ?? $message['text'] ?? '';
 
+    // Log what we received
+    error_log("[Telegram] Caption/Text received: '{$caption}'");
+
     // Extract order number from caption/text
     $orderNumber = extractOrderNumber($caption);
+
+    // Log extracted order number
+    error_log("[Telegram] Extracted order number: " . ($orderNumber ?? 'NULL'));
 
     // Check if message contains supported files
     $file = null;
