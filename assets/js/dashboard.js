@@ -243,11 +243,17 @@
                         ${group.evidencias.map(ev => `
                             <div class="evidence-item" data-id="${ev.id}">
                                 <div class="evidence-thumbnail-wrapper" onclick="viewEvidence(${ev.id})">
-                                    <img src="${ev.thumbnail_url || ev.archivo_url}" 
-                                         alt="Evidencia" 
-                                         class="evidence-thumbnail"
-                                         loading="lazy">
-                                    ${ev.archivo_tipo === 'video' ? '<div class="video-badge">🎥</div>' : ''}
+                                    ${ev.archivo_tipo === 'video' ? `
+                                        <div class="video-thumbnail-placeholder">
+                                            <span class="play-button">▶</span>
+                                        </div>
+                                    ` : `
+                                        <img src="${ev.thumbnail_url || ev.archivo_url}" 
+                                             alt="Evidencia" 
+                                             class="evidence-thumbnail"
+                                             loading="lazy">
+                                    `}
+                                    ${ev.archivo_tipo === 'video' ? '<div class="video-badge">🎥 Video</div>' : ''}
                                 </div>
                                 
                                 <div class="evidence-info">
